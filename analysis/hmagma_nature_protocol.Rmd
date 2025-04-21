@@ -1,0 +1,93 @@
+---
+title: "h-magma"
+output:
+  workflowr::wflow_html:
+    code_folding: hide
+    toc: true
+date: "2025-04-17"
+---
+
+* the codes are from nature protocol paper [Annotating genetic variants to target genes
+using H-MAGMA](https://www.nature.com/articles/s41596-022-00745-z). 
+
+
+```{r, message=F, warning=F}
+options(stringsAsFactors=F)
+library(GenomicRanges)
+library(biomaRt)
+library(dplyr)
+```
+
+
+
+```{r setup, include=FALSE}
+# Set working directory for the knitting process
+knitr::opts_knit$set(root.dir = "C:\\han\\Dataset\\20250221_PMID_32152537_hmagma\\6382668\\HMAGMA_Protocol_v1.02\\HMAGMA_Protocol\\")
+getwd()
+#setwd("C:\\han\\Dataset\\20250221_PMID_32152537_hmagma\\6382668\\HMAGMA_Protocol_v1.02\\HMAGMA_Protocol\\")
+```
+
+
+## Create GenomicRanges (GRanges) objects for exon and promoter coordinates ● Timing ~5 min
+
+```{r, message=F, warning=F}
+# 3 Read in exonic and promoter coordinate ﬁles by entering the following commands
+path="C:\\han\\Dataset\\20250221_PMID_32152537_hmagma\\6382668\\HMAGMA_Protocol_v1.02\\HMAGMA_Protocol\\"
+path2="C:\\han\\Projects\\2025_01_Improve_MAGMA\\"
+
+exon <- read.table(paste(path, "Gencode26_exon.bed", sep=""))
+exon$V1 <- sub("^", "chr", exon$V1)
+promoter <- read.table(paste(path, "Gencode26_promoter.bed", sep=""))
+promoter$V1 <- sub("^", "chr", promoter$V1)
+
+# 4 Create a GRanges object for exon and promoter deﬁnitions.
+exonranges <- GRanges(exon[,1],IRanges(exon[,2],exon[,3]),gene=exon[,4])
+promoterranges <- GRanges(promoter[,1], IRanges(promoter[,2], promoter[,3]), gene=promoter[,4])
+
+# 5 Save exon and promoter GRanges objects as a .rda ﬁle for future use.
+#save(exonranges, promoterranges, file="C:\\han\\Projects\\2025_01_Improve_MAGMA\\exon_promoranges.rda")
+```
+
+
+## Generate a GRanges object for SNP coordinates ● Timing ~5 min
+
+```{r, message=F, warning=F}
+#Generate a GRanges object for SNP coordinates ● Timing ~5 min
+#6 Read in the SNP annotation ﬁle by using the following command.
+snps <- read.table(paste(path, "EUR.bim.gz", sep=""))
+snps <- snps[,c(1,2,4)]
+colnames(snps) <- c("chr","SNP","Position")
+snps$chr <- sub("^", "chr", snps$chr)
+
+
+#7 Create a GRanges object for SNP annotations.
+snps <- GRanges(snps$chr, IRanges(snps$Position, snps$Position), rsid=
+snps$SNP)
+#8 Save the SNP GRanges object as a .rda ﬁle for future use.
+#save(snps,file=paste(path2, "snps.rda", sep=""))
+```
+
+## Assign SNPs to genes by overlapping SNPs with exons and promoters ● Timing 10–15 min
+
+```{r, message=F, warning=F}
+#9 Identify genes that map to SNPs residing in exons by overlapping the GRanges object for SNPs with
+#the GRanges object for exons.
+olap <- findOverlaps(snps,exonranges)
+snpexon <- snps[queryHits(olap)]
+mcols(snpexon) <- cbind(mcols(snpexon), mcols(exonranges[subjectHits(olap)]))
+snpexon <- snpexon[seqnames(snpexon)!="chrX"]
+
+
+#10 Overlap the GRanges object for promoters with the GRanges object for SNPs. Similar to the code
+#above, this command will identify genes that map to SNPs residing in promoter regions.
+olap <- findOverlaps(snps,promoterranges)
+snpro <- snps[queryHits(olap)]
+mcols(snpro) <- cbind(mcols(snpro),mcols(promoterranges[subjectHits(olap)]))
+snpro <- snpro[seqnames(snpro)!="chrX"]
+#save(snpro, snpexon, file=paste(path2, "snp_locating_in_exon_promoter_transcript_level.rda", sep=""))
+```
+
+
+
+
+

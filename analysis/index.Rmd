@@ -8,4 +8,8 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+
+
+1. [H-MAGMA](hmagma.html)
+
+2. [an example of H-MAGMA in nature protocol paper](hmagma_nature_protocol.html)
