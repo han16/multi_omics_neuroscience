@@ -84,10 +84,200 @@ olap <- findOverlaps(snps,promoterranges)
 snpro <- snps[queryHits(olap)]
 mcols(snpro) <- cbind(mcols(snpro),mcols(promoterranges[subjectHits(olap)]))
 snpro <- snpro[seqnames(snpro)!="chrX"]
+
+#11 Save SNPs overlapping with exons and promoters as a .rda ﬁle.
 #save(snpro, snpexon, file=paste(path2, "snp_locating_in_exon_promoter_transcript_level.rda", sep=""))
 ```
 
 
 
+## Assign unmapped SNPs to genes on the basis of Hi-C interaction data ● Timing
+30–45 min
 
+```{r, message=F, warning=F}
+# 12 After identiﬁcation of SNPs that reside in exons and/or promoters, there will be a subset of SNPs
+# that do not overlap with either (e.g., intergenic or intronic SNPs). In the following steps, we match
+# those SNPs to cognate genes on the basis of Hi-C interaction data. Identify unmapped SNPs by
+#using the code below.
+
+snpranges <- snps[!(snps$rsid %in% snpexon$rsid),]
+snpranges <- snpranges[!(snpranges$rsid %in% snpro$rsid),]
+
+
+#13 Save unmapped SNPs as a .rda ﬁle.
+#save(snpranges, file=paste(path2, "non_exonic_promoter_snp.rda", sep=""))
+
+#14 Read in adult brain Hi-C data. The ﬁrst three columns represent genomic coordinates [chr, start,
+#end] of loop anchor 1, and the last three columns represent genomic coordinates of loop anchor 2.
+#CRITICAL STEP Although we use a Hi-C dataset from the adult human brain for this protocol,
+#Hi-C datasets from the tissue or cell type associated with the disease/trait of interest can be used
+#instead.
+hic <- read.table("adultbrain_hic.bedpe", header=T)
+
+
+#15 Restructure Hi-C data to account for both anchors 1 and 2 by using the command below.
+hic.int1 <- hic[,1:6]
+hic.int2 <- hic[,c(4:6,1:3)]
+colnames(hic.int1) = colnames(hic.int2) = c("chrom1", "start1", "end1", "chrom2", "start2", "end2")
+hic.comb <- rbind(hic.int1, hic.int2)
+
+#16 Generate a GRanges object for the adult brain Hi-C data by using the command below.
+hicranges <- GRanges(hic.comb$chrom1, IRanges(as.numeric(hic.comb$start1), as.numeric(hic.comb$end1)), int1=hic.comb$start2,int2=hic.comb$end2)
+
+#17 Identify promoter-anchored interactions by overlapping loop anchor 1 with promoters.
+olap <- findOverlaps(hicranges,promoterranges)
+generanges <- hicranges[queryHits(olap)]
+mcols(generanges) <- cbind(mcols(hicranges[queryHits(olap)]), mcols(promoterranges[subjectHits(olap)]))
+
+
+#18 Reverse the order of the GRanges object from Step 17. The generanges object created in Step 17
+#is in a format of loop anchor 1, loop anchor 2, gene name. We reverse the order of loop
+#anchors so that the resulting genebed object has a format of loop anchor 2, loop anchor 1,
+#gene name.
+genebed <- data.frame(chr=seqnames(generanges), snp.start=generanges$int1, snp.end=generanges$int2, gene.start=start(generanges), gene.end=start(generanges)+width(generanges)-1, ensg=generanges$gene)
+genebed <- unique(genebed)
+
+
+#19 Create a GRanges object from Step 18.
+genesnpranges <- GRanges(genebed$chr, IRanges(genebed$snp.start,genebed$snp.end), ensg=genebed$ensg)
+
+
+
+#20 Overlap unmapped SNPs from Step 12 with loop anchor 2 from Step 19. This step assigns
+#SNPs (located at loop anchor 2) to the genes with which they interact (located at loop
+#anchor 1).
+olap <- findOverlaps(snpranges,genesnpranges)
+snpint <- snpranges[queryHits(olap)]
+mcols(snpint) <- cbind(mcols(snpranges[queryHits(olap)]), mcols(genesnpranges[subjectHits(olap)]))
+#save(snpint, file=paste(path2, "Hi-C_transcript_interacting_snp.rda", sep=""))
+
+
+#21 Integrate SNP-gene relationships derived from exons, promoters and Hi-C interaction data.
+load(paste(path2, "Hi-C_transcript_interacting_snp.rda", sep=""))
+load(paste(path2, "snp_locating_in_exon_promoter_transcript_level.rda", sep=""))
+snpdat <- data.frame(chr=seqnames(snpint),
+bp=start(snpint), rsid=snpint$rsid, ensg=snpint$ensg)
+snpromat <- unique(data.frame(rsid=snpro$rsid, ensg=snpro$gene))
+snpexonmat <- unique(data.frame(rsid=snpexon$rsid, ensg=snpexon$gene))
+snpcomb <- unique(rbind(snpdat[,3:4], snpromat, snpexonmat))
+#save(snpcomb, file=paste(path2, "SNP_to_transcript_comb.rda", sep=""))
+
+
+
+```
+
+
+
+## Create the H-MAGMA–compatible variant-gene annotation ﬁle ● Timing 15–20 min
+
+```{r, message=F, warning=F}
+#22 Aggregate SNP-gene relationships to generate the variant-gene annotation ﬁle compatible
+#with MAGMA.
+snpagg <- aggregate(snpcomb, list(snpcomb$ensg), unique)
+
+
+#23 Read in the gene deﬁnition ﬁle.
+genedef <- read.table(paste(path, "Gencode26_gene.bed", sep=""))
+colnames(genedef) <- c("chr", "start", "end", "ensg")
+
+
+#24 Create an index column from the gene deﬁnition ﬁle consisting of gene chromosomal location, start
+#and end.
+genedef <- genedef [grep("chr", genedef$chr),]
+genedef$chr <- unlist(lapply(strsplit(genedef$chr, "chr"), '[[', 2))
+genedef$index <- paste(genedef$chr, genedef$start,
+genedef$end, sep=":")
+
+
+#25 Attach the index column from Step 24 to the variant-gene annotation ﬁle from Step 22.
+snpagg$index <- genedef[match(snpagg$ensg, genedef$ensg),"index"]
+
+
+#26 Remove any missing values from the variant-gene annotation ﬁle.
+snpagg <- snpagg[!is.na(snpagg$index),]
+
+#27 Subset gene, gene location and SNPs from the variant-gene annotation ﬁle.
+snpannot <- snpagg[,c("ensg", "index", "rsid")]
+
+#28 Save the variant-gene annotation ﬁle in an executable format.
+writable <- format(snpannot)
+write.table(writable, file=paste(path2, "SNP_aggregate_transcript.txt", sep=""), quote=F, row.names=F, col.names=F, sep="\t")
+
+#system(paste0("sed -e `s/, /\t/g` < SNP_aggregate_transcript",".txt >","Adultbrain.transcript.annot"))
+system("sed -e 's/, /\\t/g' < SNP_aggregate_transcript.txt > Adultbrain.transcript.annot")
+# R code alternative for the above command from ChatGPT
+lines <- readLines(paste(path2, "SNP_aggregate_transcript.txt", sep=""))
+lines <- gsub(", ", "\t", lines)
+#writeLines(lines, paste(path2, "Adultbrain.transcript.annot", sep=""))
+
+
+```
+
+
+## Run H-MAGMA ● Timing 30–50 min
+
+
+```{r, message=F, warning=F, eval=F}
+# run magma in the magma folder 
+magma --bfile C:\\han\\Dataset\\20250221_PMID_32152537_hmagma\\g1000_eur\\g1000_eur 
+--pval C:\\han\\Dataset\\20250221_PMID_32152537_hmagma\\6382668\\HMAGMA_Protocol_v1.02\\HMAGMA_Protocol\\PD.summary.stat.txt use=rs, p ncol=N 
+--gene-annot C:\\han\\Projects\\2025_01_Improve_MAGMA\\Adultbrain.transcript.annot  
+--out C:\\han\\Projects\\2025_01_Improve_MAGMA\\PD_GWAS\\
+```
+
+
+```{r, message=F, warning=F}
+#31 Retrieve the number of genes associated with PD at different thresholds after multiple corrections
+#by running the following commands. Genes can be stratiﬁed into either protein-coding or
+#noncoding genes
+
+options(stringsAsFactors=F)
+#setwd ("~/work/")
+load(paste(path, "geneAnno_allgenes.rda", sep=""))
+backgroundset<-unique(geneAnno1[geneAnno1$gene_biotype=="protein_coding", "ensembl_gene_id"])
+diseasename <- c("PD")
+fdrdisease <- c()
+diseasemat <- read.table(paste(path2, "PD_GWAS\\PD_GWAS.genes.out.txt", sep=""), header=T)
+diseasemat <- diseasemat[diseasemat$GENE %in% backgroundset,]
+diseasemat$FDR <- p.adjust(diseasemat$P, "BH")
+backgroundensg <- diseasemat$GENE
+queryensg0 <- diseasemat[diseasemat$FDR<0.1, "GENE"]
+queryensg1 <- diseasemat[diseasemat$FDR<0.05, "GENE"]
+queryensg2 <- diseasemat[diseasemat$FDR<0.01, "GENE"]
+fdrgene <- c(diseasename, length(queryensg0), length(queryensg1),
+length(queryensg2))
+fdrdisease <- rbind(fdrdisease, fdrgene)
+colnames(fdrdisease) <- c("disease", "FDR<0.1", "FDR<0.05", "FDR<0.01")
+fdrdisease <- data.frame(fdrdisease)
+#write.csv(fdrdisease, file=paste(path2, "PD_GWAS\\PD.genes.csv",sep=""), col.names=T, row.names=F,
+#sep="\t", quote=F)
+
+#The commands above provide the number of protein-coding genes at different thresholds. To retrieve the number of all genes at the same threshold, simply comment out the command line as displayed below.
+#diseasemat<-diseasemat[diseasemat$GENE%in% backgroundset,]. This will treat the command line as a comment and prevent it from being included in the rest of the analysis, thereby generating a list of all genes rather than just protein-coding genes.
+```
+
+
+
+```{r, message=F, warning=F}
+#32 Retrieve a list of PD risk genes at false discovery rate (FDR) < 0.05 in HGNC symbols by entering
+#the command below.
+pd.genes<-unique(geneAnno1[match(queryensg1,geneAnno1$ensembl_gene_id), "hgnc_symbol"])
+```
+
+
+```{r, message=F, warning=F, eval=F }
+#33 Generate a bar plot to compare the number of all genes versus protein-coding genes at different
+#thresholds by using the commands below.
+library(tidyr)
+library(ggplot2)
+df <- read.csv(paste(path2, "PD_GWAS\\PD.genes.csv", sep=""), header = T)
+df$Threshold <- row.names(df)
+lab <- c("FDR<0.1","FDR<0.05","FDR<0.01")
+df_long <- gather(df, key = var, value = value, All_genes,PCG)
+ggplot(df_long, aes(x = Disorder, y = value, ﬁll = var)) +
+geom_bar(stat = 'identity', position = 'dodge') +
+scale_x_discrete(labels = lab)+
+geom_text(aes(label=value), vjust=1.6, Color="black")+
+scale_ﬁll_manual(values = c("#00AFBB", "#CC79A7"))
+```
 

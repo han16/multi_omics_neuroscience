@@ -400,7 +400,7 @@ aria-hidden="true"></span> </a>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2025-04-21
+<strong>Last updated:</strong> 2025-04-23
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -438,10 +438,10 @@ changes </a>
 <div id="strongRMarkdownfilestronguncommittedchanges"
 class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown is untracked by Git. To know which version of the R
-Markdown file created these results, you’ll want to first commit it to
-the Git repo. If you’re still working on the analysis, you can ignore
-this warning. When you’re finished, you can run
+<p>The R Markdown file has unstaged changes. To know which version of
+the R Markdown file created these results, you’ll want to first commit
+it to the Git repo. If you’re still working on the analysis, you can
+ignore this warning. When you’re finished, you can run
 <code>wflow_publish</code> to commit the R Markdown file and build the
 HTML.</p>
 </div>
@@ -534,15 +534,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomhan16multiomicsneurosciencetreef2884f4265456f776609551108cb5d2f3e9a3e09targetblankf2884f4a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomhan16multiomicsneurosciencetreed39784c6df797a977a367b66d485273844dcec11targetblankd39784ca">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/han16/multi_omics_neuroscience/tree/f2884f4265456f776609551108cb5d2f3e9a3e09" target="_blank">f2884f4</a>
+<a href="https://github.com/han16/multi_omics_neuroscience/tree/d39784c6df797a977a367b66d485273844dcec11" target="_blank">d39784c</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomhan16multiomicsneurosciencetreef2884f4265456f776609551108cb5d2f3e9a3e09targetblankf2884f4a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomhan16multiomicsneurosciencetreed39784c6df797a977a367b66d485273844dcec11targetblankd39784ca"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -552,7 +552,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/han16/multi_omics_neuroscience/tree/f2884f4265456f776609551108cb5d2f3e9a3e09" target="_blank">f2884f4</a>.
+<a href="https://github.com/han16/multi_omics_neuroscience/tree/d39784c6df797a977a367b66d485273844dcec11" target="_blank">d39784c</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -569,13 +569,8 @@ were generated:
 Ignored files:
     Ignored:    .Rhistory
 
-Untracked files:
-    Untracked:  analysis/generate_exon_and_promoter.Rmd
-    Untracked:  analysis/hmagma.Rmd
-    Untracked:  analysis/hmagma_nature_protocol.Rmd
-
 Unstaged changes:
-    Modified:   analysis/index.Rmd
+    Modified:   analysis/hmagma_nature_protocol.Rmd
 
 </code></pre>
 <p>
@@ -590,10 +585,75 @@ have uncommitted changes.
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
+
 <p>
-There are no past versions. Publish this analysis with
-<code>wflow_publish()</code> to start tracking its development.
+These are the previous versions of the repository in which changes were
+made to the R Markdown
+(<code>analysis/hmagma_nature_protocol.Rmd</code>) and HTML
+(<code>docs/hmagma_nature_protocol.html</code>) files. If you’ve
+configured a remote Git repository (see <code>?wflow_git_remote</code>),
+click on the hyperlinks in the table below to view the files as they
+were in that past version.
 </p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/han16/multi_omics_neuroscience/blob/d39784c6df797a977a367b66d485273844dcec11/analysis/hmagma_nature_protocol.Rmd" target="_blank">d39784c</a>
+</td>
+<td>
+han
+</td>
+<td>
+2025-04-21
+</td>
+<td>
+4/21/2025
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/han16/multi_omics_neuroscience/d39784c6df797a977a367b66d485273844dcec11/docs/hmagma_nature_protocol.html" target="_blank">d39784c</a>
+</td>
+<td>
+han
+</td>
+<td>
+2025-04-21
+</td>
+<td>
+4/21/2025
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <hr>
 </div>
 </div>
@@ -664,7 +724,178 @@ olap &lt;- findOverlaps(snps,promoterranges)
 snpro &lt;- snps[queryHits(olap)]
 mcols(snpro) &lt;- cbind(mcols(snpro),mcols(promoterranges[subjectHits(olap)]))
 snpro &lt;- snpro[seqnames(snpro)!=&quot;chrX&quot;]
+
+#11 Save SNPs overlapping with exons and promoters as a .rda ﬁle.
 #save(snpro, snpexon, file=paste(path2, &quot;snp_locating_in_exon_promoter_transcript_level.rda&quot;, sep=&quot;&quot;))</code></pre>
+</div>
+<div
+id="assign-unmapped-snps-to-genes-on-the-basis-of-hi-c-interaction-data-timing"
+class="section level2">
+<h2>Assign unmapped SNPs to genes on the basis of Hi-C interaction data
+● Timing</h2>
+<p>30–45 min</p>
+<pre class="r"><code># 12 After identiﬁcation of SNPs that reside in exons and/or promoters, there will be a subset of SNPs
+# that do not overlap with either (e.g., intergenic or intronic SNPs). In the following steps, we match
+# those SNPs to cognate genes on the basis of Hi-C interaction data. Identify unmapped SNPs by
+#using the code below.
+
+snpranges &lt;- snps[!(snps$rsid %in% snpexon$rsid),]
+snpranges &lt;- snpranges[!(snpranges$rsid %in% snpro$rsid),]
+
+
+#13 Save unmapped SNPs as a .rda ﬁle.
+#save(snpranges, file=paste(path2, &quot;non_exonic_promoter_snp.rda&quot;, sep=&quot;&quot;))
+
+#14 Read in adult brain Hi-C data. The ﬁrst three columns represent genomic coordinates [chr, start,
+#end] of loop anchor 1, and the last three columns represent genomic coordinates of loop anchor 2.
+#CRITICAL STEP Although we use a Hi-C dataset from the adult human brain for this protocol,
+#Hi-C datasets from the tissue or cell type associated with the disease/trait of interest can be used
+#instead.
+hic &lt;- read.table(&quot;adultbrain_hic.bedpe&quot;, header=T)
+
+
+#15 Restructure Hi-C data to account for both anchors 1 and 2 by using the command below.
+hic.int1 &lt;- hic[,1:6]
+hic.int2 &lt;- hic[,c(4:6,1:3)]
+colnames(hic.int1) = colnames(hic.int2) = c(&quot;chrom1&quot;, &quot;start1&quot;, &quot;end1&quot;, &quot;chrom2&quot;, &quot;start2&quot;, &quot;end2&quot;)
+hic.comb &lt;- rbind(hic.int1, hic.int2)
+
+#16 Generate a GRanges object for the adult brain Hi-C data by using the command below.
+hicranges &lt;- GRanges(hic.comb$chrom1, IRanges(as.numeric(hic.comb$start1), as.numeric(hic.comb$end1)), int1=hic.comb$start2,int2=hic.comb$end2)
+
+#17 Identify promoter-anchored interactions by overlapping loop anchor 1 with promoters.
+olap &lt;- findOverlaps(hicranges,promoterranges)
+generanges &lt;- hicranges[queryHits(olap)]
+mcols(generanges) &lt;- cbind(mcols(hicranges[queryHits(olap)]), mcols(promoterranges[subjectHits(olap)]))
+
+
+#18 Reverse the order of the GRanges object from Step 17. The generanges object created in Step 17
+#is in a format of loop anchor 1, loop anchor 2, gene name. We reverse the order of loop
+#anchors so that the resulting genebed object has a format of loop anchor 2, loop anchor 1,
+#gene name.
+genebed &lt;- data.frame(chr=seqnames(generanges), snp.start=generanges$int1, snp.end=generanges$int2, gene.start=start(generanges), gene.end=start(generanges)+width(generanges)-1, ensg=generanges$gene)
+genebed &lt;- unique(genebed)
+
+
+#19 Create a GRanges object from Step 18.
+genesnpranges &lt;- GRanges(genebed$chr, IRanges(genebed$snp.start,genebed$snp.end), ensg=genebed$ensg)
+
+
+
+#20 Overlap unmapped SNPs from Step 12 with loop anchor 2 from Step 19. This step assigns
+#SNPs (located at loop anchor 2) to the genes with which they interact (located at loop
+#anchor 1).
+olap &lt;- findOverlaps(snpranges,genesnpranges)
+snpint &lt;- snpranges[queryHits(olap)]
+mcols(snpint) &lt;- cbind(mcols(snpranges[queryHits(olap)]), mcols(genesnpranges[subjectHits(olap)]))
+#save(snpint, file=paste(path2, &quot;Hi-C_transcript_interacting_snp.rda&quot;, sep=&quot;&quot;))
+
+
+#21 Integrate SNP-gene relationships derived from exons, promoters and Hi-C interaction data.
+load(paste(path2, &quot;Hi-C_transcript_interacting_snp.rda&quot;, sep=&quot;&quot;))
+load(paste(path2, &quot;snp_locating_in_exon_promoter_transcript_level.rda&quot;, sep=&quot;&quot;))
+snpdat &lt;- data.frame(chr=seqnames(snpint),
+bp=start(snpint), rsid=snpint$rsid, ensg=snpint$ensg)
+snpromat &lt;- unique(data.frame(rsid=snpro$rsid, ensg=snpro$gene))
+snpexonmat &lt;- unique(data.frame(rsid=snpexon$rsid, ensg=snpexon$gene))
+snpcomb &lt;- unique(rbind(snpdat[,3:4], snpromat, snpexonmat))
+#save(snpcomb, file=paste(path2, &quot;SNP_to_transcript_comb.rda&quot;, sep=&quot;&quot;))</code></pre>
+</div>
+<div
+id="create-the-h-magmacompatible-variant-gene-annotation-ﬁle-timing-1520-min"
+class="section level2">
+<h2>Create the H-MAGMA–compatible variant-gene annotation ﬁle ● Timing
+15–20 min</h2>
+<pre class="r"><code>#22 Aggregate SNP-gene relationships to generate the variant-gene annotation ﬁle compatible
+#with MAGMA.
+snpagg &lt;- aggregate(snpcomb, list(snpcomb$ensg), unique)
+
+
+#23 Read in the gene deﬁnition ﬁle.
+genedef &lt;- read.table(paste(path, &quot;Gencode26_gene.bed&quot;, sep=&quot;&quot;))
+colnames(genedef) &lt;- c(&quot;chr&quot;, &quot;start&quot;, &quot;end&quot;, &quot;ensg&quot;)
+
+
+#24 Create an index column from the gene deﬁnition ﬁle consisting of gene chromosomal location, start
+#and end.
+genedef &lt;- genedef [grep(&quot;chr&quot;, genedef$chr),]
+genedef$chr &lt;- unlist(lapply(strsplit(genedef$chr, &quot;chr&quot;), &#39;[[&#39;, 2))
+genedef$index &lt;- paste(genedef$chr, genedef$start,
+genedef$end, sep=&quot;:&quot;)
+
+
+#25 Attach the index column from Step 24 to the variant-gene annotation ﬁle from Step 22.
+snpagg$index &lt;- genedef[match(snpagg$ensg, genedef$ensg),&quot;index&quot;]
+
+
+#26 Remove any missing values from the variant-gene annotation ﬁle.
+snpagg &lt;- snpagg[!is.na(snpagg$index),]
+
+#27 Subset gene, gene location and SNPs from the variant-gene annotation ﬁle.
+snpannot &lt;- snpagg[,c(&quot;ensg&quot;, &quot;index&quot;, &quot;rsid&quot;)]
+
+#28 Save the variant-gene annotation ﬁle in an executable format.
+writable &lt;- format(snpannot)
+write.table(writable, file=paste(path2, &quot;SNP_aggregate_transcript.txt&quot;, sep=&quot;&quot;), quote=F, row.names=F, col.names=F, sep=&quot;\t&quot;)
+
+#system(paste0(&quot;sed -e `s/, /\t/g` &lt; SNP_aggregate_transcript&quot;,&quot;.txt &gt;&quot;,&quot;Adultbrain.transcript.annot&quot;))
+system(&quot;sed -e &#39;s/, /\\t/g&#39; &lt; SNP_aggregate_transcript.txt &gt; Adultbrain.transcript.annot&quot;)</code></pre>
+<pre><code>[1] 2</code></pre>
+<pre class="r"><code># R code alternative for the above command from ChatGPT
+lines &lt;- readLines(paste(path2, &quot;SNP_aggregate_transcript.txt&quot;, sep=&quot;&quot;))
+lines &lt;- gsub(&quot;, &quot;, &quot;\t&quot;, lines)
+#writeLines(lines, paste(path2, &quot;Adultbrain.transcript.annot&quot;, sep=&quot;&quot;))</code></pre>
+</div>
+<div id="run-h-magma-timing-3050-min" class="section level2">
+<h2>Run H-MAGMA ● Timing 30–50 min</h2>
+<pre class="r"><code># run magma in the magma folder 
+magma --bfile C:\\han\\Dataset\\20250221_PMID_32152537_hmagma\\g1000_eur\\g1000_eur 
+--pval C:\\han\\Dataset\\20250221_PMID_32152537_hmagma\\6382668\\HMAGMA_Protocol_v1.02\\HMAGMA_Protocol\\PD.summary.stat.txt use=rs, p ncol=N 
+--gene-annot C:\\han\\Projects\\2025_01_Improve_MAGMA\\Adultbrain.transcript.annot  
+--out C:\\han\\Projects\\2025_01_Improve_MAGMA\\PD_GWAS\\</code></pre>
+<pre class="r"><code>#31 Retrieve the number of genes associated with PD at different thresholds after multiple corrections
+#by running the following commands. Genes can be stratiﬁed into either protein-coding or
+#noncoding genes
+
+options(stringsAsFactors=F)
+#setwd (&quot;~/work/&quot;)
+load(paste(path, &quot;geneAnno_allgenes.rda&quot;, sep=&quot;&quot;))
+backgroundset&lt;-unique(geneAnno1[geneAnno1$gene_biotype==&quot;protein_coding&quot;, &quot;ensembl_gene_id&quot;])
+diseasename &lt;- c(&quot;PD&quot;)
+fdrdisease &lt;- c()
+diseasemat &lt;- read.table(paste(path2, &quot;PD_GWAS\\PD_GWAS.genes.out.txt&quot;, sep=&quot;&quot;), header=T)
+diseasemat &lt;- diseasemat[diseasemat$GENE %in% backgroundset,]
+diseasemat$FDR &lt;- p.adjust(diseasemat$P, &quot;BH&quot;)
+backgroundensg &lt;- diseasemat$GENE
+queryensg0 &lt;- diseasemat[diseasemat$FDR&lt;0.1, &quot;GENE&quot;]
+queryensg1 &lt;- diseasemat[diseasemat$FDR&lt;0.05, &quot;GENE&quot;]
+queryensg2 &lt;- diseasemat[diseasemat$FDR&lt;0.01, &quot;GENE&quot;]
+fdrgene &lt;- c(diseasename, length(queryensg0), length(queryensg1),
+length(queryensg2))
+fdrdisease &lt;- rbind(fdrdisease, fdrgene)
+colnames(fdrdisease) &lt;- c(&quot;disease&quot;, &quot;FDR&lt;0.1&quot;, &quot;FDR&lt;0.05&quot;, &quot;FDR&lt;0.01&quot;)
+fdrdisease &lt;- data.frame(fdrdisease)
+#write.csv(fdrdisease, file=paste(path2, &quot;PD_GWAS\\PD.genes.csv&quot;,sep=&quot;&quot;), col.names=T, row.names=F,
+#sep=&quot;\t&quot;, quote=F)
+
+#The commands above provide the number of protein-coding genes at different thresholds. To retrieve the number of all genes at the same threshold, simply comment out the command line as displayed below.
+#diseasemat&lt;-diseasemat[diseasemat$GENE%in% backgroundset,]. This will treat the command line as a comment and prevent it from being included in the rest of the analysis, thereby generating a list of all genes rather than just protein-coding genes.</code></pre>
+<pre class="r"><code>#32 Retrieve a list of PD risk genes at false discovery rate (FDR) &lt; 0.05 in HGNC symbols by entering
+#the command below.
+pd.genes&lt;-unique(geneAnno1[match(queryensg1,geneAnno1$ensembl_gene_id), &quot;hgnc_symbol&quot;])</code></pre>
+<pre class="r"><code>#33 Generate a bar plot to compare the number of all genes versus protein-coding genes at different
+#thresholds by using the commands below.
+library(tidyr)
+library(ggplot2)
+df &lt;- read.csv(paste(path2, &quot;PD_GWAS\\PD.genes.csv&quot;, sep=&quot;&quot;), header = T)
+df$Threshold &lt;- row.names(df)
+lab &lt;- c(&quot;FDR&lt;0.1&quot;,&quot;FDR&lt;0.05&quot;,&quot;FDR&lt;0.01&quot;)
+df_long &lt;- gather(df, key = var, value = value, All_genes,PCG)
+ggplot(df_long, aes(x = Disorder, y = value, ﬁll = var)) +
+geom_bar(stat = &#39;identity&#39;, position = &#39;dodge&#39;) +
+scale_x_discrete(labels = lab)+
+geom_text(aes(label=value), vjust=1.6, Color=&quot;black&quot;)+
+scale_ﬁll_manual(values = c(&quot;#00AFBB&quot;, &quot;#CC79A7&quot;))</code></pre>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -702,8 +933,8 @@ other attached packages:
 
 loaded via a namespace (and not attached):
  [1] KEGGREST_1.44.0         xfun_0.43               bslib_0.7.0            
- [4] httr2_1.0.1             Biobase_2.64.0          vctrs_0.6.5            
- [7] tools_4.4.0             generics_0.1.3          curl_5.2.1             
+ [4] httr2_1.0.1             Biobase_2.64.0          generics_0.1.3         
+ [7] vctrs_0.6.5             tools_4.4.0             curl_5.2.1             
 [10] tibble_3.2.1            fansi_1.0.6             AnnotationDbi_1.66.0   
 [13] RSQLite_2.3.6           blob_1.2.4              pkgconfig_2.0.3        
 [16] dbplyr_2.5.0            lifecycle_1.0.4         GenomeInfoDbData_1.2.12
@@ -711,19 +942,19 @@ loaded via a namespace (and not attached):
 [22] Biostrings_2.72.0       progress_1.2.3          httpuv_1.6.15          
 [25] htmltools_0.5.8.1       sass_0.4.9              yaml_2.3.8             
 [28] later_1.3.2             pillar_1.9.0            crayon_1.5.2           
-[31] jquerylib_0.1.4         cachem_1.0.8            tidyselect_1.2.1       
-[34] digest_0.6.35           stringi_1.8.4           rprojroot_2.0.4        
-[37] fastmap_1.1.1           cli_3.6.2               magrittr_2.0.3         
-[40] utf8_1.2.4              filelock_1.0.3          prettyunits_1.2.0      
-[43] UCSC.utils_1.0.0        promises_1.3.0          rappdirs_0.3.3         
-[46] bit64_4.0.5             rmarkdown_2.26          XVector_0.44.0         
-[49] httr_1.4.7              bit_4.0.5               workflowr_1.7.1        
-[52] png_0.1-8               hms_1.1.3               memoise_2.0.1          
-[55] evaluate_0.23           knitr_1.46              BiocFileCache_2.12.0   
-[58] rlang_1.1.3             Rcpp_1.0.12             glue_1.7.0             
-[61] DBI_1.2.3               xml2_1.3.6              rstudioapi_0.16.0      
-[64] jsonlite_1.8.8          R6_2.5.1                fs_1.6.4               
-[67] zlibbioc_1.50.0        </code></pre>
+[31] jquerylib_0.1.4         whisker_0.4.1           cachem_1.0.8           
+[34] tidyselect_1.2.1        digest_0.6.35           stringi_1.8.4          
+[37] rprojroot_2.0.4         fastmap_1.1.1           cli_3.6.2              
+[40] magrittr_2.0.3          utf8_1.2.4              filelock_1.0.3         
+[43] prettyunits_1.2.0       UCSC.utils_1.0.0        promises_1.3.0         
+[46] rappdirs_0.3.3          bit64_4.0.5             rmarkdown_2.26         
+[49] XVector_0.44.0          httr_1.4.7              bit_4.0.5              
+[52] workflowr_1.7.1         png_0.1-8               hms_1.1.3              
+[55] memoise_2.0.1           evaluate_0.23           knitr_1.46             
+[58] BiocFileCache_2.12.0    rlang_1.1.3             Rcpp_1.0.12            
+[61] glue_1.7.0              DBI_1.2.3               xml2_1.3.6             
+[64] rstudioapi_0.16.0       jsonlite_1.8.8          R6_2.5.1               
+[67] fs_1.6.4                zlibbioc_1.50.0        </code></pre>
 </div>
 </div>
 
