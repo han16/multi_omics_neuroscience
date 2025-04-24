@@ -1,0 +1,9 @@
+---
+title: "replicates HMAGMA results"
+output:
+  workflowr::wflow_html:
+    code_folding: hide
+    toc: true
+date: "2025-04-24"
+---
+

@@ -13,3 +13,5 @@ editor_options:
 1. [H-MAGMA](hmagma.html)
 
 2. [an example of H-MAGMA in nature protocol paper](hmagma_nature_protocol.html)
+
+3. [replicate the results in H-MAGMA paper](hmagma_replicate.html)
