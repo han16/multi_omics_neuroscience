@@ -7,3 +7,257 @@ output:
 date: "2025-04-24"
 ---
 
+```{r, message=F, warning=F}
+rm(list=ls())
+set.seed(123)
+options(stringsAsFactors=F)
+library(GenomicRanges)
+library(biomaRt)
+library(dplyr)
+```
+
+
+
+```{r setup, include=FALSE}
+# Set working directory for the knitting process
+knitr::opts_knit$set(root.dir = "C:\\han\\Projects\\2025_01_Improve_MAGMA\\multi_omics_neuroscience\\")
+getwd()
+```
+
+
+
+## Create GenomicRanges (GRanges) objects for exon and promoter coordinates ● Timing ~5 min
+
+```{r, message=F, warning=F}
+# 3 Read in exonic and promoter coordinate ﬁles by entering the following commands
+path="C:\\han\\Dataset\\20250221_PMID_32152537_hmagma\\6382668\\HMAGMA_Protocol_v1.02\\HMAGMA_Protocol\\"
+path2="C:\\han\\Projects\\2025_01_Improve_MAGMA\\"
+path3="C:\\han\\Projects\\2025_01_Improve_MAGMA\\HMAGMA_Paper\\"
+
+exon <- read.table(paste(path, "Gencode26_exon.bed", sep=""))
+exon$V1 <- sub("^", "chr", exon$V1)
+promoter <- read.table(paste(path, "Gencode26_promoter.bed", sep=""))
+promoter$V1 <- sub("^", "chr", promoter$V1)
+
+# 4 Create a GRanges object for exon and promoter deﬁnitions.
+exonranges <- GRanges(exon[,1],IRanges(exon[,2],exon[,3]),gene=exon[,4])
+promoterranges <- GRanges(promoter[,1], IRanges(promoter[,2], promoter[,3]), gene=promoter[,4])
+
+# 5 Save exon and promoter GRanges objects as a .rda ﬁle for future use.
+#save(exonranges, promoterranges, file=paste(path3, "exon_promoranges.rda", sep=""))
+```
+
+
+
+
+## Generate a GRanges object for SNP coordinates ● Timing ~5 min
+
+```{r, message=F, warning=F}
+
+#6 Read in the SNP annotation ﬁle by using the following command.
+snps <- read.table(paste(path, "EUR.bim.gz", sep=""))
+snps <- snps[,c(1,2,4)]
+colnames(snps) <- c("chr","SNP","Position")
+snps$chr <- sub("^", "chr", snps$chr)
+
+
+#7 Create a GRanges object for SNP annotations.
+snps <- GRanges(snps$chr, IRanges(snps$Position, snps$Position), rsid=
+snps$SNP)
+#8 Save the SNP GRanges object as a .rda ﬁle for future use.
+#save(snps,file=paste(path3, "snps.rda", sep=""))
+```
+
+
+
+
+## Assign SNPs to genes by overlapping SNPs with exons and promoters ● Timing 10–15 min
+
+```{r, message=F, warning=F}
+#9 Identify genes that map to SNPs residing in exons by overlapping the GRanges object for SNPs with
+#the GRanges object for exons.
+olap <- findOverlaps(snps,exonranges)
+snpexon <- snps[queryHits(olap)]
+mcols(snpexon) <- cbind(mcols(snpexon), mcols(exonranges[subjectHits(olap)]))
+snpexon <- snpexon[seqnames(snpexon)!="chrX"]
+
+
+#10 Overlap the GRanges object for promoters with the GRanges object for SNPs. Similar to the code
+#above, this command will identify genes that map to SNPs residing in promoter regions.
+olap <- findOverlaps(snps,promoterranges)
+snpro <- snps[queryHits(olap)]
+mcols(snpro) <- cbind(mcols(snpro),mcols(promoterranges[subjectHits(olap)]))
+snpro <- snpro[seqnames(snpro)!="chrX"]
+
+#11 Save SNPs overlapping with exons and promoters as a .rda ﬁle.
+#save(snpro, snpexon, file=paste(path3, "snp_locating_in_exon_promoter_transcript_level.rda", sep=""))
+```
+
+
+
+
+
+## Assign unmapped SNPs to genes on the basis of Hi-C interaction data ● Timing
+30–45 min
+
+```{r, message=F, warning=F}
+# 12 After identiﬁcation of SNPs that reside in exons and/or promoters, there will be a subset of SNPs
+# that do not overlap with either (e.g., intergenic or intronic SNPs). In the following steps, we match
+# those SNPs to cognate genes on the basis of Hi-C interaction data. Identify unmapped SNPs by
+#using the code below.
+
+snpranges <- snps[!(snps$rsid %in% snpexon$rsid),]
+snpranges <- snpranges[!(snpranges$rsid %in% snpro$rsid),]
+
+
+#13 Save unmapped SNPs as a .rda ﬁle.
+#save(snpranges, file=paste(path3, "non_exonic_promoter_snp.rda", sep=""))
+```
+
+
+
+```{r, message=F, warning=F}
+############# this is one critical step ######################
+#14 Read in adult brain Hi-C data. The ﬁrst three columns represent genomic coordinates [chr, start,
+#end] of loop anchor 1, and the last three columns represent genomic coordinates of loop anchor 2.
+#CRITICAL STEP Although we use a Hi-C dataset from the adult human brain for this protocol,
+#Hi-C datasets from the tissue or cell type associated with the disease/trait of interest can be used
+#instead.
+hic <- read.table(paste(path, "adultbrain_hic.bedpe", sep=""), header=T)
+
+
+#15 Restructure Hi-C data to account for both anchors 1 and 2 by using the command below.
+hic.int1 <- hic[,1:6]
+hic.int2 <- hic[,c(4:6,1:3)]
+colnames(hic.int1) = colnames(hic.int2) = c("chrom1", "start1", "end1", "chrom2", "start2", "end2")
+hic.comb <- rbind(hic.int1, hic.int2)
+
+#16 Generate a GRanges object for the adult brain Hi-C data by using the command below.
+hicranges <- GRanges(hic.comb$chrom1, IRanges(as.numeric(hic.comb$start1), as.numeric(hic.comb$end1)), int1=hic.comb$start2,int2=hic.comb$end2)
+
+#17 Identify promoter-anchored interactions by overlapping loop anchor 1 with promoters.
+olap <- findOverlaps(hicranges,promoterranges)
+generanges <- hicranges[queryHits(olap)]
+mcols(generanges) <- cbind(mcols(hicranges[queryHits(olap)]), mcols(promoterranges[subjectHits(olap)]))
+
+
+#18 Reverse the order of the GRanges object from Step 17. The generanges object created in Step 17
+#is in a format of loop anchor 1, loop anchor 2, gene name. We reverse the order of loop
+#anchors so that the resulting genebed object has a format of loop anchor 2, loop anchor 1,
+#gene name.
+# Q: why need this step??????????????
+genebed <- data.frame(chr=seqnames(generanges), snp.start=generanges$int1, snp.end=generanges$int2, gene.start=start(generanges), gene.end=start(generanges)+width(generanges)-1, ensg=generanges$gene)
+genebed <- unique(genebed)
+
+
+#19 Create a GRanges object from Step 18.
+genesnpranges <- GRanges(genebed$chr, IRanges(genebed$snp.start,genebed$snp.end), ensg=genebed$ensg)
+
+
+
+#20 Overlap unmapped SNPs from Step 12 with loop anchor 2 from Step 19. This step assigns
+#SNPs (located at loop anchor 2) to the genes with which they interact (located at loop
+#anchor 1).
+olap <- findOverlaps(snpranges,genesnpranges)
+snpint <- snpranges[queryHits(olap)]
+mcols(snpint) <- cbind(mcols(snpranges[queryHits(olap)]), mcols(genesnpranges[subjectHits(olap)]))
+#save(snpint, file=paste(path3, "Hi-C_transcript_interacting_snp.rda", sep=""))
+```
+
+
+
+
+```{r, message=F, warning=F}
+
+#21 Integrate SNP-gene relationships derived from exons, promoters and Hi-C interaction data.
+load(paste(path3, "Hi-C_transcript_interacting_snp.rda", sep=""))
+load(paste(path3, "snp_locating_in_exon_promoter_transcript_level.rda", sep=""))
+snpdat <- data.frame(chr=seqnames(snpint), bp=start(snpint), rsid=snpint$rsid, ensg=snpint$ensg)
+
+snpromat <- unique(data.frame(rsid=snpro$rsid, ensg=snpro$gene))
+snpexonmat <- unique(data.frame(rsid=snpexon$rsid, ensg=snpexon$gene))
+snpcomb <- unique(rbind(snpdat[,3:4], snpromat, snpexonmat))
+#save(snpcomb, file=paste(path3, "SNP_to_transcript_comb.rda", sep=""))
+
+```
+
+
+
+
+## Create the H-MAGMA–compatible variant-gene annotation ﬁle ● Timing 15–20 min
+
+```{r, message=F, warning=F}
+#22 Aggregate SNP-gene relationships to generate the variant-gene annotation ﬁle compatible
+#with MAGMA.
+snpagg <- aggregate(snpcomb, list(snpcomb$ensg), unique)
+
+
+#23 Read in the gene definition ﬁle.
+genedef <- read.table(paste(path, "Gencode26_gene.bed", sep=""))
+colnames(genedef) <- c("chr", "start", "end", "ensg")
+
+
+#24 Create an index column from the gene deﬁnition ﬁle consisting of gene chromosomal location, start
+#and end.
+genedef <- genedef[grep("chr", genedef$chr),]
+genedef$chr <- unlist(lapply(strsplit(genedef$chr, "chr"), '[[', 2))
+genedef$index <- paste(genedef$chr, genedef$start,genedef$end, sep=":")
+
+
+#25 Attach the index column from Step 24 to the variant-gene annotation file from Step 22.
+snpagg$index <- genedef[match(snpagg$ensg, genedef$ensg),"index"]
+
+
+#26 Remove any missing values from the variant-gene annotation ﬁle.
+snpagg <- snpagg[!is.na(snpagg$index),]
+
+#27 Subset gene, gene location and SNPs from the variant-gene annotation ﬁle.
+snpannot <- snpagg[,c("ensg", "index", "rsid")]
+```
+
+
+
+```{r, message=F, warning=F}
+#28 Save the variant-gene annotation ﬁle in an executable format.
+writable <- format(snpannot)
+#write.table(writable, file=paste(path3, "SNP_aggregate_transcript.txt", sep=""), quote=F, row.names=F, col.names=F, sep="\t")
+
+#system(paste0("sed -e `s/, /\t/g` < SNP_aggregate_transcript",".txt >","Adultbrain.transcript.annot"))
+
+# R code alternative to the above command from ChatGPT
+lines <- readLines(paste(path3, "SNP_aggregate_transcript.txt", sep=""))
+lines <- gsub(", ", "\t", lines)
+#writeLines(lines, paste(path3, "Adultbrain.transcript.annot", sep=""))
+
+
+```
+
+
+
+```{r, message=F, warning=F}
+#check what causes the problem when running MAGMA: ERROR - reading p-value file: no valid p-values found for any SNPs in the data
+
+file_path <- "C:/han/Dataset/20250425_PMID_29483656_Pardinas2018/clozuk_pgc2.meta.sumstats.txt"
+df <- read.delim(file_path, header = TRUE, stringsAsFactors = FALSE)
+
+head(df$P)
+
+# Convert P to numeric (if not already)
+df$P_numeric <- as.numeric(df$P)
+
+# Count how many are NA (i.e., invalid numbers)
+sum(is.na(df$P_numeric))
+
+summary(df$P_numeric)
+
+# Check for any invalid values
+any(df$P_numeric <= 0 | df$P_numeric > 1, na.rm = TRUE)
+
+
+lines <- readLines("C:/han/Dataset/20250425_PMID_29483656_Pardinas2018/clozuk_pgc2.meta.sumstats.txt", n = 5)
+cat(lines, sep = "\n")
+
+#write.table(df, file="C:/han/Dataset/20250425_PMID_29483656_Pardinas2018/clozuk_pgc2.meta.sumstats_updated.txt", quote = F, row.names = F)
+```
+
+
